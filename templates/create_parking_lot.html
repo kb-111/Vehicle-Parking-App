@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Create Parking Lot - ParkEasy{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header text-center bg-success text-white">
+                <h4><i class="fas fa-plus"></i> Create New Parking Lot</h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="location_name" class="form-label">
+                                <i class="fas fa-map-marker-alt"></i> Location Name *
+                            </label>
+                            <input type="text" class="form-control" id="location_name" name="location_name" 
+                                   placeholder="e.g., Central Mall Parking" required>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="pin_code" class="form-label">
+                                <i class="fas fa-map-pin"></i> Pin Code *
+                            </label>
+                            <input type="text" class="form-control" id="pin_code" name="pin_code" 
+                                   pattern="[0-9]{6}" placeholder="e.g., 110001" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="address" class="form-label">
+                            <i class="fas fa-home"></i> Full Address *
+                        </label>
+                        <textarea class="form-control" id="address" name="address" rows="3" 
+                                  placeholder="Enter complete address..." required></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="price_per_hour" class="form-label">
+                                <i class="fas fa-money-bill-wave"></i> Price per Hour (₹) *
+                            </label>
+                            <input type="number" class="form-control" id="price_per_hour" name="price_per_hour" 
+                                   min="1" step="0.01" placeholder="e.g., 20.00" required>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="max_spots" class="form-label">
+                                <i class="fas fa-square"></i> Maximum Parking Spots *
+                            </label>
+                            <input type="number" class="form-control" id="max_spots" name="max_spots" 
+                                   min="1" max="1000" placeholder="e.g., 50" required>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Note:</strong> Parking spots will be automatically created based on the maximum number specified.
+                        Spots will be numbered as S001, S002, S003, etc.
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <button type="submit" class="btn btn-success btn-lg w-100">
+                                <i class="fas fa-plus"></i> Create Parking Lot
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary btn-lg w-100">
+                                <i class="fas fa-arrow-left"></i> Back to Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-eye"></i> Preview</h5>
+            </div>
+            <div class="card-body">
+                <div id="preview" class="text-muted">
+                    Fill in the form above to see a preview of your parking lot...
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const preview = document.getElementById('preview');
+    
+    form.addEventListener('input', updatePreview);
+    
+    function updatePreview() {
+        const locationName = document.getElementById('location_name').value;
+        const address = document.getElementById('address').value;
+        const pinCode = document.getElementById('pin_code').value;
+        const pricePerHour = document.getElementById('price_per_hour').value;
+        const maxSpots = document.getElementById('max_spots').value;
+        
+        if (locationName || address || pinCode || pricePerHour || maxSpots) {
+            let previewHTML = '<div class="parking-lot-preview">';
+            
+            if (locationName) {
+                previewHTML += `<h5><i class="fas fa-building"></i> ${locationName}</h5>`;
+            }
+            
+            if (address) {
+                previewHTML += `<p><i class="fas fa-map-marker-alt"></i> ${address}`;
+                if (pinCode) {
+                    previewHTML += ` - ${pinCode}`;
+                }
+                previewHTML += '</p>';
+            }
+            
+            if (pricePerHour) {
+                previewHTML += `<p><i class="fas fa-money-bill-wave"></i> <strong>₹${pricePerHour}/hour</strong></p>`;
+            }
+            
+            if (maxSpots) {
+                previewHTML += `<p><i class="fas fa-square"></i> <strong>${maxSpots} parking spots</strong> (S001 - S${String(maxSpots).padStart(3, '0')})</p>`;
+                
+                const estimatedRevenue = pricePerHour && maxSpots ? (pricePerHour * maxSpots * 8).toFixed(2) : 0;
+                if (estimatedRevenue > 0) {
+                    previewHTML += `<div class="alert alert-success mt-2">
+                        <i class="fas fa-calculator"></i> 
+                        <strong>Estimated Daily Revenue (8hrs avg):</strong> ₹${estimatedRevenue}
+                    </div>`;
+                }
+            }
+            
+            previewHTML += '</div>';
+            preview.innerHTML = previewHTML;
+        } else {
+            preview.innerHTML = "Fill in the form above to see a preview of your parking lot...";
+        }
+    }
+});
+</script>
+{% endblock %}
+        

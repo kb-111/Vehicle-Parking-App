@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - ParkEasy{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="text-white mb-4">
+            <i class="fas fa-tachometer-alt"></i> Admin Dashboard
+        </h2>
+    </div>
+</div>
+
+
+<div class="row mb-4">
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+        <div class="stats-card">
+            <i class="fas fa-building"></i>
+            <h3>{{ total_lots }}</h3>
+            <p>Parking Lots</p>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+        <div class="stats-card">
+            <i class="fas fa-square"></i>
+            <h3>{{ total_spots }}</h3>
+            <p>Total Spots</p>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+        <div class="stats-card">
+            <i class="fas fa-car"></i>
+            <h3>{{ occupied_spots }}</h3>
+            <p>Occupied</p>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+        <div class="stats-card">
+            <i class="fas fa-check-circle"></i>
+            <h3>{{ available_spots }}</h3>
+            <p>Available</p>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+        <div class="stats-card">
+            <i class="fas fa-users"></i>
+            <h3>{{ total_users }}</h3>
+            <a href="/admin/users" style="color: white; text-decoration: none;">
+            <p>Registered Users</p>
+            </a>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+        <div class="stats-card">
+            <i class="fas fa-percentage"></i>
+            <h3>{{ "%.1f"|format((occupied_spots / total_spots * 100) if total_spots > 0 else 0) }}%</h3>
+            <p>Occupancy</p>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-bolt"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <a href="{{ url_for('create_parking_lot') }}" class="btn btn-success me-2 mb-2">
+                    <i class="fas fa-plus"></i> Create New Parking Lot
+                </a>
+                <button class="btn btn-info me-2 mb-2" onclick="loadChart()">
+                    <i class="fas fa-chart-bar"></i> View Statistics
+                </button>
+                <button class="btn btn-warning me-2 mb-2" onclick="refreshData()">
+                    <i class="fas fa-sync"></i> Refresh Data
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4" id="chartSection" style="display: none;">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-bar"></i> Parking Lot Statistics</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="parkingChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-building"></i> Parking Lots Management</h5>
+            </div>
+            <div class="card-body">
+                {% if parking_lots %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Location Name</th>
+                                <th>Address</th>
+                                <th>Pin Code</th>
+                                <th>Price/Hour</th>
+                                <th>Total Spots</th>
+                                <th>Available</th>
+                                <th>Occupied</th>
+                                <th>Occupancy %</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for lot in parking_lots %}
+                            <tr>
+                                <td>{{ lot.id }}</td>
+                                <td><strong>{{ lot.prime_location_name }}</strong></td>
+                                <td>{{ lot.address[:30] }}{% if lot.address|length > 30 %}...{% endif %}</td>
+                                <td>{{ lot.pin_code }}</td>
+                                <td>₹{{ lot.price_per_hour }}</td>
+                                <td>{{ lot.maximum_number_of_spots }}</td>
+                                <td><span class="status-available">{{ lot.available_spots_count() }}</span></td>
+                                <td><span class="status-occupied">{{ lot.occupied_spots_count() }}</span></td>
+                                <td>
+                                    {% set occupancy = (lot.occupied_spots_count() / lot.maximum_number_of_spots * 100) if lot.maximum_number_of_spots > 0 else 0 %}
+                                    <div class="progress" style="height: 20px;">
+                                        <div class="progress-bar {% if occupancy < 50 %}bg-success{% elif occupancy < 80 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                             style="width: {{ occupancy }}%">
+                                            {{ "%.1f"|format(occupancy) }}%
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    
+                                    <a href="{{ url_for('lot_details', lot_id=lot.id) }}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+
+                                    <button class="btn btn-sm btn-warning" onclick="editLot({{ lot.id }})">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    {% if lot.occupied_spots_count() == 0 %}
+                                    
+                                    <form method="POST" action="{{ url_for('delete_lot', lot_id=lot.id) }}" style="display:inline;" 
+                                          onsubmit="return confirm('Are you sure you want to delete this parking lot?');">
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
+
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-building" style="font-size: 3rem; color: #ccc;"></i>
+                    <h5 class="mt-3">No Parking Lots Created Yet</h5>
+                    <p class="text-muted">Create your first parking lot to get started.</p>
+                    <a href="{{ url_for('create_parking_lot') }}" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Create Parking Lot
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let parkingChart = null;
+
+function loadChart() {
+    const chartSection = document.getElementById('chartSection');
+    if (chartSection.style.display === 'none') {
+        chartSection.style.display = 'block';
+        
+        fetch('/api/parking_stats')
+            .then(response => response.json())
+            .then(data => {
+                createChart(data);
+            })
+            .catch(error => {
+                console.error('Error fetching chart data:', error);
+            });
+    } else {
+        chartSection.style.display = 'none';
+    }
+}
+
+function createChart(data) {
+    const ctx = document.getElementById('parkingChart').getContext('2d');
+    
+    if (parkingChart) {
+        parkingChart.destroy();
+    }
+    
+    const labels = data.map(item => item.name);
+    const availableData = data.map(item => item.available);
+    const occupiedData = data.map(item => item.occupied);
+    
+    parkingChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Available Spots',
+                data: availableData,
+                backgroundColor: 'rgba(40, 167, 69, 0.8)',
+                borderColor: 'rgba(40, 167, 69, 1)',
+                borderWidth: 1
+            }, {
+                label: 'Occupied Spots',
+                data: occupiedData,
+                backgroundColor: 'rgba(220, 53, 69, 0.8)',
+                borderColor: 'rgba(220, 53, 69, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Parking Lot Occupancy Overview'
+                }
+            }
+        }
+    });
+}
+
+function refreshData() {
+    location.reload();
+}
+
+
+
+function editLot(lotId) {
+    
+    window.location.href = `/edit_lot/${lotId}`;
+
+}
+
+function deleteLot(lotId) {
+    if (confirm('Are you sure you want to delete this parking lot? This action cannot be undone.')) {
+        fetch(`/delete_lot/${lotId}`, {
+            method: 'DELETE'
+        })
+        .then(response => {
+            if (response.ok) {
+                alert('Parking lot deleted successfully!');
+                window.location.reload();  
+            } else {
+                alert('Failed to delete the parking lot.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Something went wrong.');
+        });
+    }
+}
+
+</script>
+{% endblock %}

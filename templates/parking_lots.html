@@ -1,0 +1,100 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Parking Lots</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .lot-card {
+            background-color: white;
+            padding: 20px;
+            margin: 20px auto;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 600px;
+        }
+        .lot-card h2 {
+            margin-top: 0;
+            color: #00539C;
+        }
+        p {
+            margin: 8px 0;
+            color: #555;
+        }
+        form {
+            margin-top: 10px;
+        }
+        input[type="text"] {
+            padding: 8px;
+            width: 60%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 8px 15px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        a {
+            display: inline-block;
+            margin-top: 10px;
+            color: #dc3545;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .no-lots {
+            text-align: center;
+            color: #999;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <h1>All Parking Lots</h1>
+    
+    {% if parking_lots %}
+        {% for lot in parking_lots %}
+            <div class="lot-card">
+                <h2>Booking for {{ lot.prime_location_name }}</h2>
+                <p><strong>Address:</strong> {{ lot.address }}</p>
+                <p><strong>Pin Code:</strong> {{ lot.pin_code }}</p>
+                <p><strong>Total Slots:</strong> {{ lot.maximum_number_of_spots }}</p>
+                <p><strong>Available Spots:</strong> {{ lot.available_spots_count() }}</p>
+                <p><strong>Occupied Spots:</strong> {{ lot.occupied_spots_count() }}</p>
+
+                <form action="{{ url_for('book_spot', lot_id=lot.id) }}" method="post">
+                    <input type="text" name="vehicle_number" placeholder="Enter Vehicle No." required>
+                    <button type="submit">Book</button>
+                </form>
+                
+
+
+                {% if lot.reservation_id %}
+                    <a href="{{ url_for('release_spot', reservation_id=lot.reservation_id) }}">Release Spot</a>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <p class="no-lots">No parking lots found.</p>
+    {% endif %}
+</body>
+</html>

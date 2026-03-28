@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Parking Lot: {{ lot.prime_location_name }}</h2>
+    <p><strong>Address:</strong> {{ lot.address }} | <strong>Price per Hour:</strong> ₹{{ lot.price_per_hour }}</p>
+    <p><strong>Max Spots:</strong> {{ lot.maximum_number_of_spots }}</p>
+
+    <table class="table table-bordered table-hover mt-3">
+        <thead class="thead-light">
+            <tr>
+                <th>Spot ID</th>
+                <th>Status</th>
+                <th>User</th>
+                <th>Parking Time</th>
+                <th>Cost</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for detail in spot_details %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>
+                    {% if detail.spot.status == 'O' %}
+                        <span class="text-danger">Occupied</span>
+                    {% else %}
+                        <span class="text-success">Available</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if detail.user %}
+                        {{ detail.user.username }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>
+                    {% if detail.reservation %}
+                        {{ detail.reservation.parking_timestamp }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>
+                    {% if detail.reservation %}
+                        ₹{{ lot.price_per_hour }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary mt-3">Back to Dashboard</a>
+</div>
+{% endblock %}

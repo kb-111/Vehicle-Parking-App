@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Parking Lot - ParkEasy{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white text-center">
+                <h4><i class="fas fa-edit"></i> Edit Parking Lot</h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="location_name" class="form-label">
+                                <i class="fas fa-map-marker-alt"></i> Location Name *
+                            </label>
+                            <input type="text" class="form-control" id="location_name" name="location_name" 
+                                   value="{{ lot.prime_location_name }}" required>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="pin_code" class="form-label">
+                                <i class="fas fa-map-pin"></i> Pin Code *
+                            </label>
+                            <input type="text" class="form-control" id="pin_code" name="pin_code" 
+                                   pattern="[0-9]{6}" value="{{ lot.pin_code }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="address" class="form-label">
+                            <i class="fas fa-home"></i> Full Address *
+                        </label>
+                        <textarea class="form-control" id="address" name="address" rows="3" required>{{ lot.address }}</textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="price_per_hour" class="form-label">
+                                <i class="fas fa-money-bill-wave"></i> Price per Hour (₹) *
+                            </label>
+                            <input type="number" class="form-control" id="price_per_hour" name="price_per_hour" 
+                                   min="1" step="0.01" value="{{ lot.price_per_hour }}" required>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="max_spots" class="form-label">
+                                <i class="fas fa-square"></i> Maximum Parking Spots
+                            </label>
+                            <input type="number" class="form-control" id="max_spots" name="max_spots" 
+                                   min="{{ lot.maximum_number_of_spots }}" max="1000" value="{{ lot.max_spots }}" required>
+                            <div class="form-text">
+                                You currently have {{ lot.occupied_spots }} occupied spots.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <button type="submit" class="btn btn-primary btn-lg w-100">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary btn-lg w-100">
+                                <i class="fas fa-arrow-left"></i> Back to Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
