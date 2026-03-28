@@ -173,13 +173,3 @@ This project used AI tools (like ChatGPT) for:
 * **Basabdutta Konar**
 * B.Tech CSE
 
----
-
-## 📌 Notes
-
-* Database is created programmatically (SQLite)
-* Admin is auto-created when app initializes
-* Designed as per course requirements
-
-
-Just tell me 👍
