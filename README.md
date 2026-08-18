@@ -171,5 +171,5 @@ This project used AI tools (like ChatGPT) for:
 ## 👨‍💻 Author
 
 * **Basabdutta Konar**
-* B.Tech CSE
+
 
